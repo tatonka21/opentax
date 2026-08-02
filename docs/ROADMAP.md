@@ -6,13 +6,17 @@
 - [x] Architecture, roadmap, and deployment docs
 - [x] GitHub Actions CI (shell + Terraform validation)
 - [x] Oracle Cloud Terraform + VM bootstrap script + compose overrides
+- [x] OpenTAX OpenDAX config overlay (`config/opentax-app.yml`)
+- [x] One-command bring-up automation (`scripts/bringup.sh`)
+- [x] Multi-arch OpenDAX image build pipeline (`.github/workflows/images.yml`)
 
 ## Phase 1 — Exchange bring-up (staging, free)
-- [ ] Pick ARM64 path: QEMU emulation (fast to start) or arm64 image rebuild
+- [ ] Run the image build pipeline to publish arm64 images to GHCR
 - [ ] Sign up Oracle Cloud Always Free; request Ampere A1 capacity
 - [ ] Provision VM via `infra/oracle` Terraform or manual console
-- [ ] Run `scripts/bootstrap-vm.sh`, render configs (`rake render:config`)
-- [ ] Bring up `backend` -> `setup` (Vault init, DB migrate/seed) -> `app` -> `frontend` -> minimal daemons
+- [ ] Run `scripts/bootstrap-vm.sh` (Docker, Ruby 2.6, QEMU)
+- [ ] Edit `config/opentax-app.yml` (domain, DB password, wallets)
+- [ ] Run `./scripts/bringup.sh` — full stack: backend -> setup -> app -> frontend -> daemons
 - [ ] Verify plain-HTTP access via hostname; test seeded users + a market order
 - [ ] Add real domain, then enable Let's Encrypt TLS (`ssl.enabled: true`)
 

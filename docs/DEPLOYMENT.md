@@ -32,14 +32,19 @@ Images that still need an ARM64-native override are handled by
 `infra/docker-compose.overrides.yml` (see below).
 
 ### Path B — Rebuild images for arm64 (the proper path)
-- Use **GitHub Actions free ARM64 runners** to build `linux/arm64` images of
-  peatio, barong, ranger, baseapp, tower from their openware source repos.
-- Publish to GitHub Container Registry (free) and point the compose templates
-  at those images.
-- Larger initial effort; fully automated afterwards, and production-viable.
+Implemented as **`.github/workflows/images.yml`**. It builds multi-arch
+(`linux/amd64` + `linux/arm64`) images of peatio, barong, ranger, baseapp,
+tower from the openware source repos using GitHub Actions + Buildx + QEMU and
+pushes them to GHCR (`ghcr.io/<owner>/opentax-<name>`).
 
-> Recommendation: start with **Path A** to get a working exchange this week,
-> then invest in **Path B** once the stack is proven.
+Run it: **Actions → "Build OpenDAX images" → Run workflow** (optionally select
+a subset of images). `config/opentax-app.yml` already points at the GHCR image
+names. GHCR private storage is capped at 500 MB free; multi-arch images exceed
+this, so either keep the packages public or accept small storage billing.
+
+> Recommendation: run **Path B** once (it's a one-time ~1–2 h build on the free
+> runner), then the exchange runs natively on the ARM VM with no emulation
+> penalty. Path A is the fallback for a quick look.
 
 ## Oracle Cloud setup
 
@@ -67,36 +72,34 @@ terraform init && terraform plan && terraform apply
 ```bash
 scp -i <key> scripts/bootstrap-vm.sh ubuntu@<vm-ip>:~
 ssh -i <key> ubuntu@<vm-ip>
-./bootstrap-vm.sh
+sudo ./bootstrap-vm.sh
 ```
 
-The script installs Docker + Compose, clones this repo, and inits the OpenDAX
-submodule. It does **not** render configs — that happens via the rake renderer
-(needs Ruby), which for convenience is documented in the script output.
+Installs Docker + Compose + QEMU, a `docker-compose` shim (`docker compose`),
+clones this repo, inits the OpenDAX submodule, and compiles Ruby 2.6 via rbenv
+(needed by the rake renderer).
 
-## Bring-up sequence (inside `vendor/opendax`)
+## One-command bring-up
+
+Edit `config/opentax-app.yml` first (domain, `database.password`, wallet
+addresses), then run the automated sequence:
 
 ```bash
-cp ../../infra/docker-compose.overrides.yml docker-compose.override.yml
-# 1. Edit config/app.yml: app.domain, subdomain, database.password, ssl.enabled=false
-# 2. Render configs (a ruby environment is required; e.g. docker run --rm -v $PWD:/app ruby:2.6.1 sh -c "cd /app && bundle install && bundle exec rake render:config")
-rake service:proxy[start]
-rake service:backend[start]
-rake service:influxdb[start]
-rake service:setup[start]     # Vault init + policies + DB create/migrate/seed
-rake service:app[start]
-rake service:frontend[start]
-# minimal daemons for real matching + websockets:
-docker-compose up -d rango matching order_processor trade_executor barong_sidekiq
+cd /root/opentax
+./scripts/bringup.sh
 ```
 
-For plain HTTP: leave `ssl.enabled: false`, set a real hostname
-(`app.subdomain=www`, `app.domain=example.com`) and add a DNS A record
-`www.example.com -> <vm-ip>`. Traefik routes on the Host header, so accessing
-the VM by raw IP returns 404.
+`bringup.sh` does everything: applies the config overlay + ARM compose
+overrides, renders configs (`rake render:config`), then starts
+`proxy → backend → influxdb → setup → app → frontend`, and launches the minimal
+daemons (`rango`, `matching`, `order_processor`, `trade_executor`,
+`barong_sidekiq`).
 
-Seeded logins after `setup`: `admin@barong.io / 0lDHd9ufs9t@` (admin) and
-`john@barong.io / Am8icnzEI3d!` (user).
+> Plain HTTP: leave `ssl.enabled: false`, set `app.subdomain=www` and a real
+> `app.domain`, and add a DNS A record `www.<domain> -> <vm-ip>`. Traefik routes
+> on the Host header, so accessing the VM by raw IP returns 404.
+> Seeded logins after `setup`: `admin@barong.io / 0lDHd9ufs9t@` and
+> `john@barong.io / Am8icnzEI3d!`.
 
 ## CI/CD
 

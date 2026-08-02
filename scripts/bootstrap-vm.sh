@@ -14,6 +14,11 @@ apt-get install -y docker.io docker-compose-plugin git curl ca-certificates \
 systemctl enable --now docker
 usermod -aG docker "${SUDO_USER:-$USER}"
 
+if [[ ! -f /usr/local/bin/docker-compose ]]; then
+  printf '#!/usr/bin/env bash\nexec docker compose "$@"\n' >/usr/local/bin/docker-compose
+  chmod +x /usr/local/bin/docker-compose
+fi
+
 update-binfmts --enable qemu-aarch64 || true
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes || true
 
@@ -23,22 +28,15 @@ if [[ ! -d "$REPO_DIR/.git" ]]; then
 else
   git -C "$REPO_DIR" pull --recurse-submodules
 fi
-
 git -C "$REPO_DIR" submodule update --init --recursive
+
+"$REPO_DIR/scripts/install-ruby.sh"
 
 cat <<'EOF'
 
 OpenTAX VM ready.
 
-Next steps (see docs/DEPLOYMENT.md):
-  cd "$REPO_DIR/vendor/opendax"
-  cp ../../infra/docker-compose.overrides.yml docker-compose.override.yml
-  # edit config/app.yml, then render configs, then:
-  rake service:proxy[start]
-  rake service:backend[start]
-  rake service:influxdb[start]
-  rake service:setup[start]
-  rake service:app[start]
-  rake service:frontend[start]
-  docker-compose up -d rango matching order_processor trade_executor barong_sidekiq
+Bring up the exchange:
+  cd /root/opentax
+  ./scripts/bringup.sh
 EOF

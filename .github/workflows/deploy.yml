@@ -22,13 +22,10 @@ jobs:
       - name: Push code to VM
         run: |
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r \
-            . "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:~/opentax"
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}" \
-            "cd ~/opentax && git submodule update --init --recursive"
+            . "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:/root/opentax"
 
-      - name: Restart stack
+      - name: Bring up stack
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             "${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}" \
-            "cd ~/opentax/vendor/opendax && docker-compose up -d"
+            "cd /root/opentax && ./scripts/bringup.sh"

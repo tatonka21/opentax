@@ -1,0 +1,113 @@
+---
+app:
+  name: OpenTAX
+  domain: opentax.example
+  subdomain: www
+  show_landing: true
+render_protect: false
+csrfEnabled: false
+ssl:
+  enabled: false
+  email: support@opentax.example
+updateVersions: false
+images:
+  peatio: ghcr.io/tatonka21/opentax-peatio:2.6.48
+  barong: ghcr.io/tatonka21/opentax-barong:2.6.44
+  frontend: ghcr.io/tatonka21/opentax-baseapp:2.6.24
+  tower: ghcr.io/tatonka21/opentax-tower:2.6.66
+  rango: ghcr.io/tatonka21/opentax-rango:2.6.1
+finex:
+  enabled: false
+  image: quay.io/openware/finex:2.6.39
+  license_key: changeme
+vendor:
+  frontend: git@github.com:openware/baseapp.git
+kyc:
+  provider: local
+  authorization_token: changeme
+  sandbox_mode: true
+  api_endpoint: https://api.kycaid.com/
+vault:
+  root_token: changeme
+  peatio_rails_token: changeme
+  peatio_crypto_token: changeme
+  peatio_upstream_token: changeme
+  peatio_matching_token: changeme
+  barong_token: changeme
+  finex_engine_token: changeme
+database:
+  host: db
+  adapter: mysql
+  port: 3306
+  user: root
+  password: changeme
+storage:
+  provider: Google
+  bucketName: opentax-barong-docs-bucket
+  region: fra1
+  endpoint: https://fra1.digitaloceanspaces.com
+  accessKey: changeme
+  secretKey: changeme
+  signatureVersion: '2'
+twilio:
+  enabled: false
+  phone_number: "+15005550000"
+  account_sid: changeme
+  auth_token: changeme
+gaTrackerKey: ''
+captcha:
+  type: none
+  siteKey: changeme
+  secretKey: changeme
+smtp:
+  host: smtp.sendgrid.net
+  port: 2525
+  user: apikey
+  password: changeme
+  sender_email: noreply@opentax.example
+  sender_name: OpenTAX
+  sender_logo: https://storage.googleapis.com/public_peatio/logo.png
+wallets:
+  eth:
+  - kind: deposit
+    address: changeme
+    max_balance: 0.0
+    secret: changeme
+  - kind: hot
+    address: changeme
+    max_balance: 100.0
+    secret: changeme
+  - kind: warm
+    address: changeme
+    max_balance: 1000.0
+    secret: changeme
+  btc:
+  - kind: deposit
+    address: changeme
+    max_balance: 0.0
+  - kind: hot
+    address: changeme
+    max_balance: 100.0
+  - kind: warm
+    address: changeme
+    max_balance: 1000.0
+parity:
+  network: testnet
+  address: parity
+  rpcport: 8545
+  port: 30303
+bitcoind:
+  enabled: false
+  rpcuser: admin
+  rpcpassword: changeme
+  address: bitcoind
+  network: testnet
+  rpcport: 18332
+  port: 18333
+litecoind:
+  rpcuser: admin
+  rpcpassword: changeme
+  address: litecoind
+  network: testnet
+  rpcport: 19332
+  port: 19335
