@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { candles, getMarket, markets } from "@/lib/mock";
+import { getMarket, markets, candles } from "@/lib/mock";
 import { formatPrice, formatPercent, formatCompact, cls } from "@/lib/format";
 import { BookOpen, CandlestickChart as ChartIcon, Star } from "lucide-react";
 import CandlestickChart from "./CandlestickChart";
@@ -9,14 +9,23 @@ import { TradeFeed } from "./TradeFeed";
 import OrderForm from "./OrderForm";
 import { Card } from "@/components/ui/Card";
 import { Sparkline } from "@/components/ui/Sparkline";
+import { useTickerMap, useKlines, useOrderBook, useTrades } from "@/lib/DataContext";
+
+const INTERVALS: Record<string, number> = { "1m": 1, "5m": 5, "15m": 15, "1H": 60, "4H": 240, "1D": 1440 };
+const RANGES = Object.keys(INTERVALS);
 
 export default function TradePage() {
   const { symbol } = useParams();
   const safe = symbol ?? "BTC/USDT";
-  const market = getMarket(safe);
+  const staticMarket = getMarket(safe);
   const [tab, setTab] = useState<"book" | "trades">("book");
-  const [range, setRange] = useState("1D");
-  const data = useMemo(() => candles(safe, 240), [safe]);
+  const [range, setRange] = useState("5m");
+
+  const tickers = useTickerMap();
+  const market = tickers[safe] ?? staticMarket;
+  const klines = useKlines(safe, INTERVALS[range], 240);
+  const book = useOrderBook(safe, 20);
+  const trades = useTrades(safe, 30);
   const [base, quote] = safe.split("/");
 
   const stats = [
@@ -56,7 +65,7 @@ export default function TradePage() {
         <Card className="p-0">
           <div className="flex items-center justify-between border-b border-surface-800 px-4 py-2">
             <div className="flex items-center gap-1">
-              {["1m", "5m", "15m", "1H", "4H", "1D"].map((r) => (
+              {RANGES.map((r) => (
                 <button
                   key={r}
                   onClick={() => setRange(r)}
@@ -75,7 +84,7 @@ export default function TradePage() {
             </div>
           </div>
           <div className="p-2">
-            <CandlestickChart candles={data} />
+            <CandlestickChart candles={klines} />
           </div>
         </Card>
 
@@ -97,7 +106,7 @@ export default function TradePage() {
               ))}
             </div>
             <div className="max-h-80 overflow-y-auto p-2">
-              {tab === "book" ? <OrderBookPanel symbol={safe} /> : <TradeFeed symbol={safe} />}
+              {tab === "book" ? <OrderBookPanel book={book} /> : <TradeFeed trades={trades} />}
             </div>
           </Card>
 
@@ -108,25 +117,29 @@ export default function TradePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {marketsNear(safe).map((m) => (
-          <Link key={m.symbol} to={`/trade/${m.symbol}`} className="card p-3 transition-colors hover:border-surface-600">
-            <div className="mb-1 flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-200">{m.base}/{m.quote}</span>
-              <span className={cls("font-mono", m.change24h >= 0 ? "text-accent-green" : "text-accent-red")}>
-                {formatPrice(m.price)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">{formatPercent(m.change24h)}</span>
-              <Sparkline
-                values={candles(m.symbol, 24).map((c) => c.close)}
-                positive={m.change24h >= 0}
-                width={72}
-                height={20}
-              />
-            </div>
-          </Link>
-        ))}
+        {marketsNear(safe).map((m) => {
+          const live = tickers[m.symbol];
+          const row = live ?? m;
+          return (
+            <Link key={m.symbol} to={`/trade/${m.symbol}`} className="card p-3 transition-colors hover:border-surface-600">
+              <div className="mb-1 flex items-center justify-between text-sm">
+                <span className="font-semibold text-slate-200">{m.base}/{m.quote}</span>
+                <span className={cls("font-mono", row.change24h >= 0 ? "text-accent-green" : "text-accent-red")}>
+                  {formatPrice(row.price)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">{formatPercent(row.change24h)}</span>
+                <Sparkline
+                  values={candles(m.symbol, 24).map((c) => c.close)}
+                  positive={row.change24h >= 0}
+                  width={72}
+                  height={20}
+                />
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

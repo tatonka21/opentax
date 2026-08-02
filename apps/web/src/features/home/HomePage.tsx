@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { markets } from "@/lib/mock";
 import { formatPrice, formatPercent, formatCompact, cls } from "@/lib/format";
+import { useTickerMap } from "@/lib/DataContext";
 import { ArrowRight, LineChart, ShieldCheck, Wallet2, Zap } from "lucide-react";
 
 const features = [
@@ -27,6 +28,8 @@ const features = [
 ];
 
 export default function HomePage() {
+  const tickers = useTickerMap();
+  const rows = markets.slice(0, 6).map((m) => tickers[m.symbol] ?? m);
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="pt-8 text-center">
@@ -78,7 +81,7 @@ export default function HomePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-800/60">
-              {markets.slice(0, 6).map((m) => (
+              {rows.map((m) => (
                 <tr key={m.symbol} className="hover:bg-surface-850">
                   <td className="px-4 py-2">
                     <Link to={`/trade/${m.symbol}`} className="font-semibold text-slate-200 hover:text-brand-400">
@@ -111,8 +114,8 @@ export default function HomePage() {
         <h2 className="text-lg font-bold text-white">The whole exchange, one suite</h2>
         <p className="mx-auto mt-1 max-w-xl text-sm text-slate-400">
           Trading, wallet, earn, staking, swap, launchpad, referral, API and admin — mapped in
-          <span className="text-slate-300"> docs/PRODUCTS.md</span>. This is the sandbox UI; it plugs
-          into the OpenDAX engine over REST + WebSocket.
+          <span className="text-slate-300"> docs/PRODUCTS.md</span>. Market data streams live (Kraken),
+          orders are paper; the real OpenDAX engine plugs in over REST + WebSocket.
         </p>
       </section>
     </div>

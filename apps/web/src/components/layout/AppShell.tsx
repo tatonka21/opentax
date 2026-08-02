@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { markets } from "@/lib/mock";
 import { formatPrice, formatUsd } from "@/lib/format";
+import { useData, useTickerMap } from "@/lib/DataContext";
 import type { ComponentType } from "react";
 
 type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
@@ -41,9 +42,11 @@ const moreNav: NavItem[] = [
 ];
 
 function Ticker() {
+  const tickers = useTickerMap();
+  const rows = markets.slice(0, 4).map((m) => tickers[m.symbol] ?? m);
   return (
     <div className="hidden items-center gap-5 overflow-hidden lg:flex">
-      {markets.slice(0, 4).map((m) => (
+      {rows.map((m) => (
         <div key={m.symbol} className="flex items-baseline gap-1.5 text-xs">
           <span className="text-slate-400">{m.base}/{m.quote}</span>
           <span className={m.change24h >= 0 ? "text-accent-green" : "text-accent-red"}>
@@ -52,6 +55,29 @@ function Ticker() {
         </div>
       ))}
     </div>
+  );
+}
+
+function DataToggle() {
+  const { mode, conn, setMode } = useData();
+  const dot =
+    mode === "demo"
+      ? "bg-slate-600"
+      : conn === "live"
+        ? "bg-accent-green"
+        : conn === "connecting"
+          ? "bg-accent-yellow"
+          : "bg-accent-red";
+  const label = mode === "demo" ? "DEMO" : conn === "connecting" ? "CONNECTING" : conn === "offline" ? "OFFLINE" : "LIVE";
+  return (
+    <button
+      onClick={() => setMode(mode === "live" ? "demo" : "live")}
+      title={mode === "live" ? "Switch to demo data" : "Switch to live market feed"}
+      className="btn-ghost flex items-center gap-1.5 px-2 py-1.5 text-xs font-semibold"
+    >
+      <span className={cls("h-1.5 w-1.5 rounded-full", dot)} />
+      {label}
+    </button>
   );
 }
 
@@ -79,6 +105,7 @@ function NavLinks({ items, label }: { items: NavItem[]; label?: string }) {
 }
 
 export default function AppShell() {
+  const { conn } = useData();
   return (
     <div className="flex h-screen overflow-hidden">
       <aside className="hidden w-56 shrink-0 flex-col border-r border-surface-800 bg-surface-900 md:flex">
@@ -109,6 +136,7 @@ export default function AppShell() {
           </div>
           <Ticker />
           <div className="ml-auto flex items-center gap-2">
+            <DataToggle />
             <span className="hidden rounded-md border border-surface-700 px-2 py-1 text-xs text-slate-400 sm:block">
               {formatUsd(156773.5, 0)} est. balance
             </span>
@@ -118,6 +146,12 @@ export default function AppShell() {
             <button className="btn-outline px-2 py-1.5 text-xs">Sign in</button>
           </div>
         </header>
+
+        {conn === "offline" && (
+          <div className="border-b border-accent-red/20 bg-accent-red/10 px-4 py-1.5 text-center text-xs font-medium text-accent-red">
+            Live feed unreachable — showing demo data.
+          </div>
+        )}
 
         <main className="flex-1 overflow-y-auto bg-surface-950 p-4 lg:p-6">
           <Outlet />

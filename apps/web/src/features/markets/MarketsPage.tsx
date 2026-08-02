@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { markets, candles } from "@/lib/mock";
-import { formatPrice, formatPercent, formatCompact, formatUsd, cls } from "@/lib/format";
+import { formatPrice, formatPercent, formatCompact, cls } from "@/lib/format";
+import { useTickerMap } from "@/lib/DataContext";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { Star, Search } from "lucide-react";
 import type { Market } from "@/lib/mock";
@@ -14,6 +15,7 @@ export default function MarketsPage() {
   const [favs, setFavs] = useState<Set<string>>(new Set(markets.filter((m) => m.favorite).map((m) => m.symbol)));
   const [sortKey, setSortKey] = useState<SortKey>("quoteVolume24h");
   const [asc, setAsc] = useState(false);
+  const tickers = useTickerMap();
 
   const rows = useMemo(() => {
     const filtered = markets.filter((m) => {
@@ -22,14 +24,15 @@ export default function MarketsPage() {
       if (!s) return true;
       return m.symbol.toLowerCase().includes(s) || m.base.toLowerCase().includes(s) || m.quote.toLowerCase().includes(s);
     });
+    const live = filtered.map((m) => tickers[m.symbol] ?? m);
     const sign = asc ? 1 : -1;
-    return [...filtered].sort((a, b) => {
+    return [...live].sort((a, b) => {
       const av = a[sortKey];
       const bv = b[sortKey];
       if (typeof av === "string" || typeof bv === "string") return String(av).localeCompare(String(bv)) * sign;
       return ((av as number) - (bv as number)) * sign;
     });
-  }, [q, onlyFavs, favs, sortKey, asc]);
+  }, [q, onlyFavs, favs, sortKey, asc, tickers]);
 
   const toggleFav = (m: Market) =>
     setFavs((prev) => {
@@ -130,7 +133,9 @@ export default function MarketsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-600">Mock market data for the paper-trading sandbox. Total: {formatUsd(1.2e9, 0)} traded 24h.</p>
+      <p className="text-xs text-slate-600">
+        Prices stream live from Kraken when the feed is up; static mock data otherwise. Sandbox paper-trading totals.
+      </p>
     </div>
   );
 }

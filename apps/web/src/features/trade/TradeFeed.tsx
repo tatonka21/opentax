@@ -1,9 +1,9 @@
-import { memo } from "react";
-import { trades } from "@/lib/mock";
+import { memo, useMemo } from "react";
+import type { Trade } from "@/lib/mock";
 import { formatPrice, formatNum, formatTime } from "@/lib/format";
 
-export const TradeFeed = memo(function TradeFeed({ symbol }: { symbol: string }) {
-  const list = trades(symbol);
+export const TradeFeed = memo(function TradeFeed({ trades }: { trades: Trade[] }) {
+  const list = useMemo(() => [...trades].sort((a, b) => b.time - a.time).slice(0, 30), [trades]);
   return (
     <div className="text-xs font-mono">
       <div className="mb-1 flex items-center justify-between px-2 font-semibold uppercase text-slate-500">

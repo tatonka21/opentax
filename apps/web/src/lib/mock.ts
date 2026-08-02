@@ -24,7 +24,7 @@ export type OrderBookLevel = { price: number; amount: number };
 export type OrderBook = { bids: OrderBookLevel[]; asks: OrderBookLevel[] };
 
 export type Trade = {
-  id: number;
+  id: string;
   price: number;
   amount: number;
   side: "buy" | "sell";
@@ -194,7 +194,7 @@ export function trades(symbol: string, count = 20): Trade[] {
     const side: "buy" | "sell" = rnd() > 0.5 ? "buy" : "sell";
     price = price * (1 + (rnd() - 0.5) * 0.0008);
     out.push({
-      id: end + i,
+      id: String(end + i),
       price,
       amount: rnd() * 2 + 0.001,
       side,

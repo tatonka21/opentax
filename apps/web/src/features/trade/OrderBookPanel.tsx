@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { orderBook, type OrderBook as Book } from "@/lib/mock";
+import type { OrderBook as Book } from "@/lib/mock";
 import { formatPrice, formatNum } from "@/lib/format";
 
 type Level = { price: number; amount: number; total: number };
@@ -21,8 +21,7 @@ function Row({ lvl, max, side }: { lvl: Level; max: number; side: "buy" | "sell"
   );
 }
 
-export const OrderBookPanel = memo(function OrderBookPanel({ symbol }: { symbol: string }) {
-  const book: Book = orderBook(symbol);
+export const OrderBookPanel = memo(function OrderBookPanel({ book }: { book: Book }) {
   const accumulate = (levels: Book["bids"]): Level[] => {
     let acc = 0;
     return levels.map((l) => {
@@ -30,6 +29,11 @@ export const OrderBookPanel = memo(function OrderBookPanel({ symbol }: { symbol:
       return { ...l, total: acc };
     });
   };
+
+  if (book.bids.length === 0 || book.asks.length === 0) {
+    return <div className="px-2 py-8 text-center text-xs text-slate-600">Loading order book…</div>;
+  }
+
   const asks = accumulate(book.asks);
   const bids = accumulate(book.bids);
   const max = Math.max(asks[asks.length - 1].total, bids[bids.length - 1].total);
