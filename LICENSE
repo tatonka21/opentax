@@ -1,0 +1,5 @@
+OpenTAX is licensed under the Apache License 2.0.
+
+The vendored OpenDAX distribution in vendor/opendax is also Apache-2.0
+(see vendor/opendax/LICENSE). Full Apache-2.0 text:
+https://www.apache.org/licenses/LICENSE-2.0

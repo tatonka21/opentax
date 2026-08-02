@@ -1,0 +1,24 @@
+# Dependencies / build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Env & secrets
+.env
+*.env
+!**/.env.example
+config/secrets/
+
+# Terraform
+infra/oracle/.terraform/
+infra/oracle/*.tfstate
+infra/oracle/*.tfstate.*
+infra/oracle/*.tfvars
+infra/oracle/terraform.tfvars
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/

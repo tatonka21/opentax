@@ -1,0 +1,8 @@
+region = "us-ashburn-1"
+tenancy_ocid = "<tenancy-ocid>"
+user_ocid = "<user-ocid>"
+compartment_ocid = "<compartment-ocid>"
+api_key_fingerprint = "<api-key-fingerprint>"
+api_key_path = "~/.oci/oci_api_key.pem"
+ssh_public_key = file("~/.ssh/id_ed25519.pub")
+# image_ocid = ""  # auto-resolve arm64 Ubuntu; set explicitly if resolution fails

@@ -1,0 +1,4 @@
+[submodule "vendor/opendax"]
+	path = vendor/opendax
+	url = https://github.com/openware/opendax.git
+	branch = 2-6-stable

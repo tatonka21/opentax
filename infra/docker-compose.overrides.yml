@@ -1,0 +1,5 @@
+services:
+  db:
+    image: mariadb:10.6
+  gateway:
+    image: envoyproxy/envoy:v1.18.6
