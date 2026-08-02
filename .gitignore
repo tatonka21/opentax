@@ -22,3 +22,6 @@ infra/oracle/terraform.tfvars
 *.log
 .idea/
 .vscode/
+
+# TS incremental build info
+*.tsbuildinfo
