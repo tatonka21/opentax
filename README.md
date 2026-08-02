@@ -7,6 +7,9 @@ suite of Web3 tools, trading utilities, and AI-agent capabilities.
 > Status: **foundation scaffolding**. Exchange bring-up playbook and CI/CD are
 > in place; full stack deployment is next.
 
+> Note: this repository is **public** so GitHub Actions runs with unlimited
+> free minutes. Keep secrets out of this repo; use Actions secrets instead.
+
 ## Why OpenDAX
 
 OpenDAX is a battle-tested, open-source, cloud-native exchange distribution. It
